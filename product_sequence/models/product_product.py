@@ -24,6 +24,7 @@ class ProductProduct(models.Model):
             categ_id = vals.get("categ_id")
             template_id = vals.get("product_tmpl_id")
             category = self.env["product.category"]
+            template = None
             if categ_id:
                 # Created as a product.product
                 category = category.browse(categ_id)
@@ -31,8 +32,11 @@ class ProductProduct(models.Model):
                 # Created from a product.template
                 template = self.env["product.template"].browse(template_id)
                 category = template.categ_id
-            sequence = self.env["ir.sequence"].get_category_sequence_id(category)
-            vals["default_code"] = sequence.next_by_id()
+            if template and template.default_code:
+                vals["default_code"] = template.default_code
+            else:
+                sequence = self.env["ir.sequence"].get_category_sequence_id(category)
+                vals["default_code"] = sequence.next_by_id()
         return super().create(vals)
 
     def write(self, vals):
